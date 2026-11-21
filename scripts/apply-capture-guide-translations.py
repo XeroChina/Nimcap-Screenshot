@@ -11,6 +11,8 @@ def apply_catalog(catalog):
     for culture, language in catalog["cultures"].items():
         suffix = "" if culture == "en" else "." + culture
         path = ROOT / f"Libraries/NimCap.Screenshot.Core/Resources/Strings{suffix}.resx"
+        if not path.exists():
+            continue
         content = path.read_text(encoding="utf-8-sig")
         for key, value in zip(catalog["keys"], catalog["translations"][language], strict=True):
             pattern = r'(<data name="' + re.escape(key) + r'"[^>]*>\s*<value>).*?(</value>\s*</data>)'

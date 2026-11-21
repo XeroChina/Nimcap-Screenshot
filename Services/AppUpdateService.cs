@@ -12,8 +12,9 @@ internal sealed record AppRelease(Version Version, string Tag, string Notes, Uri
 
 internal static class AppUpdateService
 {
-    internal const string ReleasesUrl = "https://github.com/nimcap/nimcap-screenshot/releases";
-    private const string ApiUrl = "https://api.github.com/repos/nimcap/nimcap-screenshot/releases/latest";
+    internal const string RepositorySlug = "XeroChina/nimcap-screenshot";
+    internal const string ReleasesUrl = "https://github.com/" + RepositorySlug + "/releases";
+    private const string ApiUrl = "https://api.github.com/repos/" + RepositorySlug + "/releases/latest";
 
     internal static Version Normalize(Version version) =>
         new(version.Major, version.Minor, Math.Max(0, version.Build), Math.Max(0, version.Revision));
@@ -38,7 +39,7 @@ internal static class AppUpdateService
         var tag = release.GetProperty("tag_name").GetString() ?? "";
         if (!Version.TryParse(tag.TrimStart('v', 'V'), out var version))
             throw new InvalidDataException("Invalid release version.");
-        var page = TrustedUrl(release.GetProperty("html_url").GetString(), "/nimcap/nimcap-screenshot/releases/tag/")
+        var page = TrustedUrl(release.GetProperty("html_url").GetString(), "/" + RepositorySlug + "/releases/tag/")
             ?? throw new InvalidDataException("Invalid release URL.");
         Uri? download = null;
         Uri? checksums = null;
@@ -50,9 +51,9 @@ internal static class AppUpdateService
             foreach (var asset in assets.EnumerateArray())
             {
                 if (asset.GetProperty("name").GetString() == "SHA256SUMS.txt")
-                    checksums = TrustedUrl(asset.GetProperty("browser_download_url").GetString(), "/nimcap/nimcap-screenshot/releases/download/");
+                    checksums = TrustedUrl(asset.GetProperty("browser_download_url").GetString(), "/" + RepositorySlug + "/releases/download/");
                 if (!string.Equals(asset.GetProperty("name").GetString(), expectedName, StringComparison.OrdinalIgnoreCase)) continue;
-                download = TrustedUrl(asset.GetProperty("browser_download_url").GetString(), "/nimcap/nimcap-screenshot/releases/download/");
+                download = TrustedUrl(asset.GetProperty("browser_download_url").GetString(), "/" + RepositorySlug + "/releases/download/");
                 if (asset.TryGetProperty("digest", out var digest) && digest.GetString() is { } value &&
                     value.StartsWith("sha256:", StringComparison.OrdinalIgnoreCase) &&
                     value.Length == 71 && value[7..].All(Uri.IsHexDigit)) sha256 = value[7..];

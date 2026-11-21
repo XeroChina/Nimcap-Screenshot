@@ -105,8 +105,8 @@ internal static class ShellSelfTest
             return Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent(JsonSerializer.Serialize(new
             {
                 tag_name = "v99.0.0", draft = false, prerelease = false, body = "One-line notes should not create a panel.",
-                html_url = "https://github.com/nimcap/nimcap-screenshot/releases/tag/v99.0.0",
-                assets = new[] { new { name = "nimcap-screenshot-v99.0.0-win-x64.zip", browser_download_url = "https://github.com/nimcap/nimcap-screenshot/releases/download/v99.0.0/nimcap-screenshot-v99.0.0-win-x64.zip" } }
+                html_url = "https://github.com/XeroChina/nimcap-screenshot/releases/tag/v99.0.0",
+                assets = new[] { new { name = "nimcap-screenshot-v99.0.0-win-x64.zip", browser_download_url = "https://github.com/XeroChina/nimcap-screenshot/releases/download/v99.0.0/nimcap-screenshot-v99.0.0-win-x64.zip" } }
             })) });
         }
     }

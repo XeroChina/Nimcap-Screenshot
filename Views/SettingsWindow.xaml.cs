@@ -90,6 +90,13 @@ public partial class SettingsWindow : Window
         RequireSignedPlugins.IsChecked = current.RequireSignedPlugins;
         DataDirectory.Text = AppPaths.DataLocation.SelectedDirectory;
         ActiveDataDirectory.Text = L.Format("ActiveDataDirectory", AppPaths.Root);
+        if (AppPaths.PortableRoot is not null)
+        {
+            // Portable mode keeps every user file in <package root>\Data; the folder is not user-selectable.
+            DataDirectory.IsEnabled = false;
+            BrowseDataDirectoryButton.IsEnabled = false;
+            DefaultDataDirectoryButton.IsEnabled = false;
+        }
         OcrBackendBox.SelectedIndex = current.OcrBackend switch { "Windows" => 1, "Tesseract" => 2, _ => 0 };
         OcrModelPackage.SelectedValue = current.OcrModelPackage is "tiny" or "medium" ? current.OcrModelPackage : OcrModelDownloadService.DefaultPackageId;
         OnnxDeviceBox.SelectedIndex = current.OnnxDevice == "DirectML" ? 1 : 0;

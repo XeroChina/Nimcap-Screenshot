@@ -10,7 +10,7 @@
     <Title>NimCap Screenshot</Title>
     <Product>NimCap Screenshot</Product>
     <Company>NimCap</Company>
-    <RepositoryUrl>https://github.com/nimcap/nimcap-screenshot</RepositoryUrl>
+    <RepositoryUrl>https://github.com/XeroChina/nimcap-screenshot</RepositoryUrl>
     <PackageProjectUrl>https://jietu.nimcap.com</PackageProjectUrl>
     <Description>NimCap 截图工具</Description>
     <RootNamespace>NimCap.Screenshot</RootNamespace>
@@ -54,6 +54,7 @@
     <Compile Remove="tools\ScrollingChecks\**\*.cs" />
     <Compile Remove="tools\RecordingChecks\**\*.cs" />
     <Compile Remove="tools\UpdateChecks\**\*.cs" />
+    <Compile Remove="tools\Launcher\**\*.cs" />
     <Compile Remove="tools\WindowChecks\**\*.cs" />
     <Compile Remove="tools\ModelStorageChecks\**\*.cs" />
     <Compile Remove="tools\StabilityChecks\**\*.cs" />

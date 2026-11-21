@@ -35,6 +35,27 @@ internal static partial class Program
         Require(update.Files.Length == 6 && File.Exists(Path.Combine(update.Stage, "NimCap.Screenshot.exe")), "Wrapped update package not extracted.");
         var flat = Archive("flat", "");
         Require(AppUpdateInstaller.ExtractPackage(flat, Path.Combine(root, "flat"), default).Files.Length == 6, "Flat update package not extracted.");
+        var portableArchive = Archive("portable", "Program/");
+        using (var zip = ZipFile.Open(portableArchive, ZipArchiveMode.Update))
+        {
+            foreach (var name in new[] { "NimCap.Screenshot.exe", "portable", "README.md", "Data/.gitkeep" })
+            using (var writer = new StreamWriter(zip.CreateEntry(name).Open())) writer.Write("root " + name);
+        }
+        var portable = AppUpdateInstaller.ExtractPackage(portableArchive, Path.Combine(root, "portable"), default);
+        Require(portable.Files.Length == 6 && File.Exists(Path.Combine(portable.Stage, "NimCap.Screenshot.exe")),
+            "Portable update package not extracted under Program/.");
+        Require(!File.Exists(Path.Combine(portable.Stage, "portable")),
+            "Portable marker leaked into the update stage.");
+        foreach (var (name, extra) in new[] { ("portable-data", "Data/settings.json"), ("portable-unknown", "extra.dll") })
+        {
+            var bad = Archive(name, "Program/", extra: null);
+            using (var zip = ZipFile.Open(bad, ZipArchiveMode.Update))
+            using (var writer = new StreamWriter(zip.CreateEntry(extra).Open())) writer.Write("outside Program");
+            var rejected = false;
+            try { AppUpdateInstaller.ExtractPackage(bad, Path.Combine(root, name), default); }
+            catch (InvalidDataException) { rejected = true; }
+            Require(rejected, "Unsafe portable update archive accepted: " + name);
+        }
         foreach (var (name, extra) in new[] { ("traversal", "../outside.dll"), ("absolute", "/evil.dll"),
             ("settings", "settings.json"), ("model", "models/model.onnx"), ("data", "data-location.json"),
             ("alternate", "file.dll:extra"), ("reserved", "CON.dll"), ("duplicate", "nimcap.screenshot.exe") })

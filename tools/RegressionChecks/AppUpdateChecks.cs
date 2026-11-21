@@ -25,11 +25,11 @@ internal static partial class Program
             string package = "nimcap-screenshot-v1.0.9-win-x64.zip", string host = "github.com") => JsonSerializer.Serialize(new
         {
             tag_name = tag, draft = false, prerelease, body = "Release notes\nSecond line",
-            html_url = $"https://{host}/nimcap/nimcap-screenshot/releases/tag/{tag}",
+            html_url = $"https://{host}/{AppUpdateService.RepositorySlug}/releases/tag/{tag}",
             assets = new[]
             {
-                new { name = package, browser_download_url = $"https://{host}/nimcap/nimcap-screenshot/releases/download/{tag}/{package}", digest = "sha256:" + new string('a', 64) },
-                new { name = "SHA256SUMS.txt", browser_download_url = $"https://{host}/nimcap/nimcap-screenshot/releases/download/{tag}/SHA256SUMS.txt", digest = "" }
+                new { name = package, browser_download_url = $"https://{host}/{AppUpdateService.RepositorySlug}/releases/download/{tag}/{package}", digest = "sha256:" + new string('a', 64) },
+                new { name = "SHA256SUMS.txt", browser_download_url = $"https://{host}/{AppUpdateService.RepositorySlug}/releases/download/{tag}/SHA256SUMS.txt", digest = "" }
             }
         });
         static HttpClient Client(string json, HttpStatusCode status = HttpStatusCode.OK) =>
@@ -83,7 +83,7 @@ internal static partial class Program
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            Require(request.RequestUri?.AbsoluteUri == "https://api.github.com/repos/nimcap/nimcap-screenshot/releases/latest", "Wrong update endpoint.");
+            Require(request.RequestUri?.AbsoluteUri == $"https://api.github.com/repos/{AppUpdateService.RepositorySlug}/releases/latest", "Wrong update endpoint.");
             Require(request.Headers.UserAgent.Count > 0 && request.Headers.Accept.Any(), "GitHub API headers missing.");
             return Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent(json) });
         }

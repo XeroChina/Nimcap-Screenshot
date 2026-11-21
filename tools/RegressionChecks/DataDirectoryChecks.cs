@@ -103,7 +103,17 @@ internal static partial class Program
         ExpectMigrationFailure(broken.ApplyPendingChange);
         Require(File.ReadAllText(Path.Combine(brokenExe, "settings.json")) == "invalid JSON" &&
             !Directory.EnumerateFileSystemEntries(brokenTarget).Any(), "Invalid metadata lost source data or left partial destination data.");
-        Console.WriteLine("PASS: exe default, legacy discovery, pending changes, model/history path migration, conflicts and failed-commit rollback.");
+
+        // Portable mode pins every user file to <package root>\Data and ignores per-install location metadata.
+        var portableExe = Path.Combine(root, "portable-exe");
+        var portableData = Path.Combine(root, "portable-data");
+        Directory.CreateDirectory(portableExe);
+        File.WriteAllText(Path.Combine(portableExe, "data-location.json"),
+            JsonSerializer.Serialize(new { CurrentDirectory = Path.Combine(root, "ignored"), NextDirectory = (string?)null }));
+        var portable = new DataDirectoryService(portableExe, legacy, portableData);
+        Require(portable.Root == portableData && portable.SelectedDirectory == portableData, "Portable mode must pin the Data folder.");
+        Require(new DataDirectoryService(portableExe, legacy, portableData).Root == portableData, "Portable mode must ignore location metadata.");
+        Console.WriteLine("PASS: exe default, legacy discovery, pending changes, model/history path migration, conflicts, failed-commit rollback and portable Data folder.");
     }
 
     private static void ExpectMigrationFailure(Action action)

@@ -2,13 +2,13 @@
 
 **简体中文** | [English](README.en.md)
 
-[GitHub](https://github.com/nimcap/nimcap-screenshot) · [Gitee](https://gitee.com/lilongjiang/SnapSharp) · [官方网站](https://jietu.nimcap.com/) · [下载发布版](https://github.com/nimcap/nimcap-screenshot/releases)
+[GitHub](https://github.com/XeroChina/nimcap-screenshot) · [Gitee](https://gitee.com/lilongjiang/SnapSharp) · [官方网站](https://jietu.nimcap.com/) · [下载发布版](https://github.com/XeroChina/nimcap-screenshot/releases)
 
 NimCap 截图工具（NimCap Screenshot）是一款面向 Windows 的开源桌面工具，把**截图、标注、贴图、长截图和录屏**，与**本地 OCR、翻译、表格与公式识别、抠图、去水印及图像修复**放在同一个工作流程中。从屏幕取一张图，既可以直接分享，也可以继续提取文字、整理表格、生成 LaTeX、移除背景，或将参考资料贴在桌面。
 
 **离线 AI 是它的核心能力：图片和文字在本机处理，无需上传云端完成本地识别、翻译与图像处理。** 提前准备好程序、对应模型和运行依赖后，这些功能可在断网电脑或无互联网连接的内网中使用，适合整理内部资料、制作教程、阅读外文文档和日常办公。基础截图、标注、贴图、取色、测量与条码解码无需下载 AI 模型。
 
-项目属于 `nimcap`，原名 SnapSharp，当前仓库为 `nimcap/nimcap-screenshot`；已有用户数据目录保持兼容。软件使用 C#、WPF 和 .NET 10 构建，面向 Windows x64，通过系统托盘和全局快捷键调用。
+项目属于 `nimcap`，原名 SnapSharp，当前仓库为 `XeroChina/nimcap-screenshot`；已有用户数据目录保持兼容。软件使用 C#、WPF 和 .NET 10 构建，面向 Windows x64，通过系统托盘和全局快捷键调用。
 
 ## 离线 AI 可以做什么
 
@@ -156,7 +156,7 @@ MP4 使用 H.264，可选择系统声音、麦克风和摄像头，音频使用 
 
 ## 下载与快速上手
 
-1. 从 [GitHub Releases](https://github.com/nimcap/nimcap-screenshot/releases) 下载 Windows x64 发布包，完整解压，运行 `NimCap.Screenshot.exe`。
+1. 从 [GitHub Releases](https://github.com/XeroChina/nimcap-screenshot/releases) 下载 Windows x64 发布包，完整解压，运行 `NimCap.Screenshot.exe`。
 2. 在任务栏右下角找到托盘图标；启动后没有常驻主窗口是正常现象。
 3. 按 `Ctrl+Shift+A` 截图，添加标注后复制、保存或贴图，按 `Esc` 取消。
 4. 处理已有图片时，复制图片后按 `Ctrl+Shift+V`，右键贴图打开“图像工具”，选择识别或图像处理功能。
@@ -204,7 +204,7 @@ ONNX 图像推理在独立子进程中执行；GPU 初始化、推理失败或�
 
 ## 反馈与联系
 
-欢迎反馈使用问题和功能建议。请优先通过 [GitHub Issues](https://github.com/nimcap/nimcap-screenshot/issues) 提交，并附上软件版本、Windows 版本、复现步骤和必要截图。涉及隐私的内容请勿公开，可通过邮箱或微信联系。
+欢迎反馈使用问题和功能建议。请优先通过 [GitHub Issues](https://github.com/XeroChina/nimcap-screenshot/issues) 提交，并附上软件版本、Windows 版本、复现步骤和必要截图。涉及隐私的内容请勿公开，可通过邮箱或微信联系。
 
 - 邮箱：[509918688@qq.com](mailto:509918688@qq.com)
 - 微信号：`nimcap`

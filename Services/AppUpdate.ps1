@@ -38,6 +38,7 @@ try {
     $target = Full-Directory $state.Target
     $stage = Full-Directory $state.Stage
     $backup = Full-Directory $state.Backup
+    $restart = if ($state.Restart) { $state.Restart } else { [IO.Path]::Combine($target, 'NimCap.Screenshot.exe') }
     if ($target -eq $stage -or $target.StartsWith($stage, [StringComparison]::OrdinalIgnoreCase) -or
         $stage.StartsWith($target, [StringComparison]::OrdinalIgnoreCase) -or
         $backup.StartsWith($target, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid update directory layout.' }
@@ -80,7 +81,7 @@ try {
     }
     @{ Status = 'installed'; Backup = $backup } | ConvertTo-Json | Set-Content -LiteralPath $state.Result -Encoding UTF8
     if (-not $TestMode) {
-        Start-Process -FilePath ([IO.Path]::Combine($target, 'NimCap.Screenshot.exe')) -WorkingDirectory $target -WindowStyle Hidden -ErrorAction Stop | Out-Null
+        Start-Process -FilePath $restart -WorkingDirectory $target -WindowStyle Hidden -ErrorAction Stop | Out-Null
     }
     exit 0
 }
@@ -108,7 +109,7 @@ catch {
         $message += "Details: $($state.Result)"
         [System.Windows.MessageBox]::Show($message, 'NimCap Screenshot update', 'OK', 'Error') | Out-Null
         if (-not $waiting -and $rollbackFailures.Count -eq 0) {
-            Start-Process -FilePath ([IO.Path]::Combine($target, 'NimCap.Screenshot.exe')) -WorkingDirectory $target -WindowStyle Hidden
+            Start-Process -FilePath $restart -WorkingDirectory $target -WindowStyle Hidden
         }
     }
     exit 1

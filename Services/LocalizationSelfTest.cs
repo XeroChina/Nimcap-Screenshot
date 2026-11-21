@@ -39,8 +39,8 @@ internal static class LocalizationSelfTest
             }
             Require(LocalizationService.ResolveCulture("", CultureInfo.GetCultureInfo("zh-Hans")).Name == "zh-CN", "Follow Chinese system");
             Require(LocalizationService.ResolveCulture("", CultureInfo.GetCultureInfo("en-GB")).Name == "en", "Follow English system");
-            Require(LocalizationService.ResolveCulture("fr-CA").Name == "fr-CA", "Selectable language preference");
-            Require(LocalizationService.Languages.Any(language => language.Code == "es-419" && language.NativeName == "Español (Latinoamérica)"), "Additional interface language list");
+            Require(LocalizationService.ResolveCulture("zh-CN").Name == "zh-CN", "Selectable language preference");
+            Require(LocalizationService.Languages.Any(language => language.Code == "zh-CN" && language.NativeName == "简体中文"), "Additional interface language list");
             Require(LocalizationService.ResolveCulture("not_a_culture").Name == "en", "Invalid preference fallback");
             Require(UiText.Resources.GetString("Save", CultureInfo.GetCultureInfo("ar")) == "Save", "ResourceManager fallback");
             Require(JsonSerializer.Deserialize<AppSettings>("{}")!.InterfaceLanguage == "", "Old settings compatibility");
@@ -97,7 +97,7 @@ internal static class LocalizationSelfTest
                     Require(window.Title == UiText.Get("NimCapSettings"), $"WPF resource lookup: {code}; actual '{window.Title}', expected '{UiText.Get("NimCapSettings")}'");
                     var languageBox = (System.Windows.Controls.ComboBox)window.FindName("InterfaceLanguageBox");
                     languageBox.SelectedValue = code;
-                    Require(languageBox.SelectedItem.ToString() == (code == "en" ? "English" : "中文（中国大陆）"), "Readable language selection");
+                    Require(languageBox.SelectedItem.ToString() == (code == "en" ? "English" : "简体中文"), "Readable language selection");
                     var candidate = window.BuildCandidate();
                     Require(candidate.InterfaceLanguage == code, "Selected language candidate");
                     Require(settings.Current.InterfaceLanguage == "", "Unsaved preference does not mutate current settings");

@@ -14,7 +14,7 @@ public sealed class SettingsService
     public SettingsService(string settingsFile, string? executableDirectory = null)
     {
         _settingsFile = Path.GetFullPath(settingsFile);
-        _executableDirectory = Path.GetFullPath(executableDirectory ?? AppContext.BaseDirectory);
+        _executableDirectory = Path.GetFullPath(executableDirectory ?? AppPaths.ContentRoot);
     }
 
     public string ResolveModelPath(string? path) => ModelPathService.Resolve(path, _executableDirectory);

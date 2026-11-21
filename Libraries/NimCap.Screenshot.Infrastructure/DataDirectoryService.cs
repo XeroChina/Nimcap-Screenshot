@@ -18,10 +18,16 @@ public sealed class DataDirectoryService
     public string Root { get; private set; }
     public string SelectedDirectory { get; private set; }
 
-    public DataDirectoryService(string executableDirectory, string legacyDirectory)
+    public DataDirectoryService(string executableDirectory, string legacyDirectory, string? portableDirectory = null)
     {
         DefaultDirectory = Normalize(executableDirectory);
         _locationFile = Path.Combine(DefaultDirectory, "data-location.json");
+        if (portableDirectory is not null)
+        {
+            // Portable mode pins every user file to <package root>\Data and ignores per-install metadata.
+            Root = SelectedDirectory = Normalize(portableDirectory);
+            return;
+        }
         if (File.Exists(_locationFile))
         {
             var location = JsonSerializer.Deserialize<Location>(File.ReadAllText(_locationFile))

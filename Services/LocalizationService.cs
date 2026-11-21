@@ -17,12 +17,7 @@ public static class LocalizationService
     private static readonly CultureInfo SystemCulture = CultureInfo.CurrentUICulture;
     private static readonly (string Code, string Name)[] AdditionalLanguages =
     [
-        ("cs", "Čeština"), ("de", "Deutsch"), ("de-AT", "Deutsch (Österreich)"), ("de-CH", "Deutsch (Schweiz)"),
-        ("es", "Español"), ("es-ES", "Español (España)"), ("es-419", "Español (Latinoamérica)"),
-        ("fr", "Français"), ("fr-FR", "Français (France)"), ("fr-CA", "Français (Canada)"),
-        ("it", "Italiano"), ("ja", "日本語"), ("ko", "한국어"), ("pl", "Polski"),
-        ("pt-BR", "Português (Brasil)"), ("pt-PT", "Português (Portugal)"), ("ru", "Русский"),
-        ("tr", "Türkçe"), ("zh-CN", "中文（中国大陆）"), ("zh-Hans", "简体中文"), ("zh-Hant", "繁體中文")
+        ("zh-CN", "简体中文")
     ];
     public static IReadOnlyList<InterfaceLanguage> Languages { get; } = DiscoverLanguages();
     public static event EventHandler? LanguageChanged;

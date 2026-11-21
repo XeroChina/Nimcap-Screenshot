@@ -103,15 +103,31 @@ internal static class AppUpdateInstaller
             if (total > MaximumExpanded || !paths.Add(name)) throw new InvalidDataException("Oversized or duplicate update files.");
             entries.Add((entry, name));
         }
-        var executables = entries.Where(x => x.Name.Equals("NimCap.Screenshot.exe", StringComparison.OrdinalIgnoreCase) ||
-            x.Name.EndsWith("/NimCap.Screenshot.exe", StringComparison.OrdinalIgnoreCase)).ToArray();
-        if (executables.Length != 1) throw new InvalidDataException("The package must contain one NimCap.Screenshot.exe.");
-        var prefix = executables[0].Name[..^"NimCap.Screenshot.exe".Length];
+        // Portable packages keep the real application under Program/ and add a launcher at the archive root.
+        var portableExecutable = entries.FirstOrDefault(x => x.Name.Equals("Program/NimCap.Screenshot.exe", StringComparison.OrdinalIgnoreCase));
+        var prefix = portableExecutable.Entry is null ? "" : "Program/";
+        if (prefix.Length == 0)
+        {
+            var executables = entries.Where(x => x.Name.Equals("NimCap.Screenshot.exe", StringComparison.OrdinalIgnoreCase) ||
+                x.Name.EndsWith("/NimCap.Screenshot.exe", StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (executables.Length != 1) throw new InvalidDataException("The package must contain one NimCap.Screenshot.exe.");
+            prefix = executables[0].Name[..^"NimCap.Screenshot.exe".Length];
+        }
+        // Files next to Program/ are distribution metadata, never user data or program files.
+        var rootExtras = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "NimCap.Screenshot.exe", "portable", "README.md", "LICENSE", "THIRD-PARTY-NOTICES.md", "Data/.gitkeep"
+        };
         var files = new List<string>();
         foreach (var (entry, name) in entries)
         {
             cancellation.ThrowIfCancellationRequested();
-            if (!name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Files outside the application directory.");
+            if (!name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                if (prefix.Length == 0 || !rootExtras.Contains(name))
+                    throw new InvalidDataException("Files outside the application directory.");
+                continue;
+            }
             var relative = name[prefix.Length..];
             ValidateRelativePath(relative);
             if (relative.Split('/').Any(part => ProtectedNames.Contains(part) || part.StartsWith('.') ||
@@ -198,6 +214,11 @@ internal static class AppUpdateInstaller
         var handoff = Path.Combine(update.Directory, "handoff-" + Guid.NewGuid().ToString("N"));
         System.IO.Directory.CreateDirectory(handoff);
         var plan = Path.Combine(handoff, "plan.json");
+        // Portable packages restart the launcher next to Program/ so portable mode stays active.
+        var restart = Path.Combine(target, "NimCap.Screenshot.exe");
+        var packageRoot = Directory.GetParent(target)?.FullName;
+        if (packageRoot is not null && File.Exists(Path.Combine(packageRoot, "NimCap.Screenshot.exe")))
+            restart = Path.Combine(packageRoot, "NimCap.Screenshot.exe");
         using var parent = Process.GetCurrentProcess();
         var files = update.Files.Select(relative => new
         {
@@ -206,7 +227,9 @@ internal static class AppUpdateInstaller
         }).ToArray();
         await File.WriteAllTextAsync(plan, JsonSerializer.Serialize(new
         {
-            Target = target, update.Stage, Files = files, ParentId = parent.Id,
+            Target = target,
+            Restart = restart,
+            update.Stage, Files = files, ParentId = parent.Id,
             ParentStartTicks = parent.StartTime.ToUniversalTime().Ticks,
             Backup = Path.Combine(handoff, "backup"),
             Ready = Path.Combine(handoff, "ready"),

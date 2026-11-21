@@ -396,15 +396,13 @@ Terminating the process or losing power can leave an MP4 without its final index
 
 The Settings window is organized by category. Scroll down on the right when a page contains more options. After making changes, click **Save Settings** at the bottom. A successful model download does not mean the configuration has been saved.
 
-Application settings and local data default to:
+Application settings and local data default to the `Data` folder under the portable package root:
 
 ```text
-The folder containing NimCap.Screenshot.exe
+<package root>\Data
 ```
 
-In **Settings → General → Local Data**, browse or enter a new folder, or click **Use executable folder**. Saving prompts you to migrate downloaded models, settings, and history. After confirmation, exit NimCap Screenshot from the tray and launch it again to perform the migration and update model and history paths. Original data is deleted only after success; existing application data in the destination is never overwritten. If migration fails, the original folder remains in use.
-
-Existing installations continue using `%LocalAppData%\NimCap Screenshot` until you choose another folder. The selection is stored in `data-location.json` beside the executable. Both the executable folder and chosen data folder must be writable.
+The package root contains the `NimCap.Screenshot.exe` launcher, the `Program\` runtime, the `Data\` user-data folder, and the `portable` marker. In portable mode the data folder is fixed to `Data` and the **Local Data** controls in Settings are disabled; settings, downloaded models, history, diagnostics, and plugins are all kept there. Copy or move the whole package to migrate everything, and model paths are stored relative to the package root.
 
 | Directory or file | Contents |
 |---|---|
@@ -414,7 +412,7 @@ Existing installations continue using `%LocalAppData%\NimCap Screenshot` until y
 | `Diagnostics` | Diagnostic information and self-test results |
 | `Plugins` | Discovery directory for external plugins, which are disabled by default |
 
-When updating, preserve the data folder and `data-location.json`; do not delete the entire application folder. After manually moving to another computer, you may need to select local model paths again. Before deleting model files, confirm that no feature still references them.
+When updating, preserve the `Data` folder and do not delete only `Program\`. After moving the whole package to another computer, model paths remain relative to the package root and continue to work. Before deleting model files, confirm that no feature still references them.
 
 Local screenshots, OCR, background removal, and local translation do not upload images or text. Model downloads require internet access. Online translation, reverse image search, and similar features send relevant content to external services and require explicit authorization and review of the outgoing preview.
 

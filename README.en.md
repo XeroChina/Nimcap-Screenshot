@@ -2,13 +2,13 @@
 
 [简体中文](README.md) | **English**
 
-[GitHub](https://github.com/nimcap/nimcap-screenshot) · [Gitee](https://gitee.com/lilongjiang/SnapSharp) · [Website](https://jietu.nimcap.com/) · [Releases](https://github.com/nimcap/nimcap-screenshot/releases)
+[GitHub](https://github.com/XeroChina/nimcap-screenshot) · [Gitee](https://gitee.com/lilongjiang/SnapSharp) · [Website](https://jietu.nimcap.com/) · [Releases](https://github.com/XeroChina/nimcap-screenshot/releases)
 
 NimCap Screenshot is an open-source Windows desktop tool combining **screenshots, annotations, desktop pins, scrolling capture, and recording** with **local OCR, translation, table and formula recognition, background removal, watermark removal, and image repair**. Capture an image and share it, or keep working: extract text, export a table, generate LaTeX, remove a background, or pin reference material to your desktop.
 
 **Offline AI is central to the application. Local recognition, translation, and image processing run on your computer without uploading your images or text to the cloud.** Once the application, required models, and runtime dependencies are prepared, these features work without internet access, including on isolated internal networks. Use them for internal documents, tutorials, foreign-language reading, and everyday office work. Basic capture, annotations, pins, color picking, measurement, and barcode decoding need no AI downloads.
 
-The application is part of `nimcap` and was formerly called SnapSharp. Its current repository is `nimcap/nimcap-screenshot`; existing user data directories remain compatible. Built with C#, WPF, and .NET 10 for Windows x64, it is accessed through the notification area and global shortcuts.
+The application is part of `nimcap` and was formerly called SnapSharp. Its current repository is `XeroChina/nimcap-screenshot`; existing user data directories remain compatible. Built with C#, WPF, and .NET 10 for Windows x64, it is accessed through the notification area and global shortcuts.
 
 ## What offline AI can do
 
@@ -156,7 +156,7 @@ Save PNG, JPEG, WebP, TIFF, BMP, or A4-paginated PDF. Preview resizing and encod
 
 ## Download and get started
 
-1. Download the Windows x64 package from [GitHub Releases](https://github.com/nimcap/nimcap-screenshot/releases), extract the entire directory, and run `NimCap.Screenshot.exe`.
+1. Download the Windows x64 package from [GitHub Releases](https://github.com/XeroChina/nimcap-screenshot/releases), extract the entire directory, and run `NimCap.Screenshot.exe`.
 2. Find its icon in the notification area. There is no persistent main window on startup.
 3. Press `Ctrl+Shift+A`, select a region, annotate, then copy, save, or pin. Press `Esc` to cancel.
 4. For an existing image, copy it, press `Ctrl+Shift+V`, then right-click the pin and choose **Image Tools**.

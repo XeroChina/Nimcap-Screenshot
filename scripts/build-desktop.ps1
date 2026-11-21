@@ -31,8 +31,10 @@ try {
     # from leaking into the portable distribution. No existing directory is deleted.
     $buildRoot = Join-Path $repositoryRoot ".artifacts/desktop-build/$([Guid]::NewGuid().ToString('N'))"
     $publishDirectory = Join-Path $buildRoot 'publish'
+    $launcherDirectory = Join-Path $buildRoot 'launcher'
     $packageDirectory = Join-Path $buildRoot 'dist'
-    New-Item -ItemType Directory -Path $publishDirectory, $packageDirectory -Force | Out-Null
+    $stagePackage = Join-Path $buildRoot 'package'
+    New-Item -ItemType Directory -Path $publishDirectory, $launcherDirectory, $packageDirectory -Force | Out-Null
 
     Invoke-DotNet @('restore', 'NimCap.Screenshot.slnx')
     Invoke-DotNet @('build', 'NimCap.Screenshot.slnx', '-c', 'Release', '--no-restore', '-m:1',
@@ -44,33 +46,59 @@ try {
         '--self-contained', 'true', '-o', $publishDirectory, '-m:1',
         '-p:UseSharedCompilation=false', '-p:PublishSingleFile=false', '-p:PublishTrimmed=false',
         "-bl:$buildRoot/publish.binlog")
+    Invoke-DotNet @('publish', 'tools/Launcher/Launcher.csproj', '-c', 'Release', '-r', 'win-x64',
+        '-o', $launcherDirectory, '-m:1', '-p:UseSharedCompilation=false',
+        "-bl:$buildRoot/launcher.binlog")
 
-    $required = @(
-        'NimCap.Screenshot.exe', 'NimCap.Screenshot.dll', 'NimCap.Screenshot.deps.json',
-        'NimCap.Screenshot.runtimeconfig.json', 'coreclr.dll', 'hostfxr.dll',
-        'LICENSE', 'README.md', 'THIRD-PARTY-NOTICES.md',
-        'ThirdPartyLicenses/PACKAGE-NOTICES.md', 'ThirdPartyLicenses/DirectML-LICENSE.txt'
+    # Assemble the portable layout: launcher + portable marker at the root, runtime under Program/, user data under Data/.
+    New-Item -ItemType Directory -Path $stagePackage -Force | Out-Null
+    Move-Item -LiteralPath $publishDirectory -Destination (Join-Path $stagePackage 'Program')
+    $programDirectory = Join-Path $stagePackage 'Program'
+    Copy-Item -LiteralPath (Join-Path $launcherDirectory 'NimCap.Screenshot.exe') -Destination (Join-Path $stagePackage 'NimCap.Screenshot.exe')
+    New-Item -ItemType File -Path (Join-Path $stagePackage 'portable') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $stagePackage 'Data') -Force | Out-Null
+    New-Item -ItemType File -Path (Join-Path $stagePackage 'Data\.gitkeep') -Force | Out-Null
+    foreach ($name in @('LICENSE', 'README.md', 'THIRD-PARTY-NOTICES.md')) {
+        Copy-Item -LiteralPath (Join-Path $repositoryRoot $name) -Destination (Join-Path $stagePackage $name)
+    }
+
+    $requiredFiles = @(
+        'Program/NimCap.Screenshot.exe', 'Program/NimCap.Screenshot.dll', 'Program/NimCap.Screenshot.deps.json',
+        'Program/NimCap.Screenshot.runtimeconfig.json', 'Program/coreclr.dll', 'Program/hostfxr.dll',
+        'NimCap.Screenshot.exe', 'portable', 'LICENSE', 'README.md', 'THIRD-PARTY-NOTICES.md',
+        'Program/ThirdPartyLicenses/PACKAGE-NOTICES.md', 'Program/ThirdPartyLicenses/DirectML-LICENSE.txt'
     )
-    foreach ($name in $required) {
-        if (-not (Test-Path -LiteralPath (Join-Path $publishDirectory $name) -PathType Leaf)) {
-            throw "The self-contained distribution is missing $name."
+    foreach ($name in $requiredFiles) {
+        if (-not (Test-Path -LiteralPath (Join-Path $stagePackage $name) -PathType Leaf)) {
+            throw "The portable distribution is missing $name."
         }
     }
-    $executable = Join-Path $publishDirectory 'NimCap.Screenshot.exe'
+    if (-not (Test-Path -LiteralPath (Join-Path $stagePackage 'Data') -PathType Container)) {
+        throw 'The portable distribution is missing the Data folder.'
+    }
+    $executable = Join-Path $programDirectory 'NimCap.Screenshot.exe'
     $fileVersion = [Version][Diagnostics.FileVersionInfo]::GetVersionInfo($executable).FileVersion
     if ($fileVersion -ne [Version]"$projectVersion.0") {
         throw "Executable version $fileVersion does not match $projectVersion."
     }
+    if ((Get-Item -LiteralPath (Join-Path $stagePackage 'NimCap.Screenshot.exe')).Length -le 0) {
+        throw 'The portable launcher is empty.'
+    }
     $forbiddenExtensions = @('.onnx', '.gguf', '.safetensors', '.traineddata', '.pt', '.pth', '.pfx', '.p12', '.key')
     $forbiddenNames = @('settings.json', 'data-location.json', '.env', 'secrets.json')
-    foreach ($file in Get-ChildItem -LiteralPath $publishDirectory -Recurse -Force -File) {
+    foreach ($file in Get-ChildItem -LiteralPath $programDirectory -Recurse -Force -File) {
         if ($file.Extension -in $forbiddenExtensions -or $file.Name -in $forbiddenNames) {
             throw "Unexpected private data or model file in the distribution: $($file.Name)."
         }
     }
     foreach ($name in @('models', 'History', 'Diagnostics', 'downloads', '.git', '.codex', '.agents')) {
-        if (Test-Path -LiteralPath (Join-Path $publishDirectory $name)) {
+        if (Test-Path -LiteralPath (Join-Path $programDirectory $name)) {
             throw "Unexpected local directory in the distribution: $name."
+        }
+    }
+    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $stagePackage 'Data') -Recurse -Force -File) {
+        if ($file.Name -ne '.gitkeep') {
+            throw "Unexpected user file shipped in the portable Data folder: $($file.Name)."
         }
     }
 
@@ -78,7 +106,7 @@ try {
     $packagePath = Join-Path $packageDirectory $packageName
     # Archive children at ZIP root, exactly as expected by the in-app updater.
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [IO.Compression.ZipFile]::CreateFromDirectory($publishDirectory, $packagePath,
+    [IO.Compression.ZipFile]::CreateFromDirectory($stagePackage, $packagePath,
         [IO.Compression.CompressionLevel]::Optimal, $false)
     $digest = (Get-FileHash -LiteralPath $packagePath -Algorithm SHA256).Hash.ToLowerInvariant()
     $checksumPath = Join-Path $packageDirectory 'SHA256SUMS.txt'
