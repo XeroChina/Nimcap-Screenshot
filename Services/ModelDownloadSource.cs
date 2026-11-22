@@ -38,6 +38,8 @@ internal static class ModelDownloadSource
             "huggingface.co" or "hf.co" ||
          uri.Host.EndsWith(".huggingface.co", StringComparison.OrdinalIgnoreCase) ||
          uri.Host.EndsWith(".hf.co", StringComparison.OrdinalIgnoreCase) ||
+         // ModelScope serves LFS objects from a CDN subdomain, e.g. cdn-lfs-cn-1.modelscope.cn.
+         uri.Host.EndsWith(".modelscope.cn", StringComparison.OrdinalIgnoreCase) ||
          sourceKind == Domestic && (uri.Host is "hf-mirror.com" or "gh-proxy.com" or
              "pypi.tuna.tsinghua.edu.cn" or "mirrors.tuna.tsinghua.edu.cn"));
 

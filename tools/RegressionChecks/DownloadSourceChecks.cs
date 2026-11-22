@@ -35,6 +35,10 @@ internal static partial class Program
             "https://hf-mirror.com.example.com/a", "https://evil-hf.co/a", "https://example.com/a" })
             Require(!ModelDownloadSource.Allowed(new Uri(invalid), domestic), "Untrusted mirror URL was accepted: " + invalid);
         Require(!ModelDownloadSource.Allowed(new Uri(mirror)), "Official mode accepted a mirror redirect.");
+        // ModelScope serves LFS objects from a CDN subdomain after a 302.
+        foreach (var sourceKind in new[] { ModelDownloadSource.Official, domestic })
+            Require(ModelDownloadSource.Allowed(new Uri("https://cdn-lfs-cn-1.modelscope.cn/prod/lfs-objects/aa/bb/model.onnx"), sourceKind),
+                "ModelScope LFS CDN redirect was rejected: " + sourceKind);
 
         var payload = new byte[] { 1, 3, 5, 7, 9 };
         var target = Path.Combine(Root, "switch-source");
@@ -62,6 +66,16 @@ internal static partial class Program
         })))
         using (var response = await ModelDownloadSource.Get(client, SpecialistModelDownloadService.Formula[^1].Url, domestic, default))
             Require(response.IsSuccessStatusCode, "Formula mirror failed.");
+
+        using (var client = new HttpClient(new Handler((request, call) =>
+        {
+            if (call == 1)
+                return new(HttpStatusCode.Redirect) { Headers = { Location = new Uri("https://cdn-lfs-cn-1.modelscope.cn/prod/lfs-objects/aa/bb/table.onnx") } };
+            Require(request.RequestUri!.Host == "cdn-lfs-cn-1.modelscope.cn", "ModelScope CDN was not requested.");
+            return Reply(payload);
+        })))
+        using (var response = await ModelDownloadSource.Get(client, SpecialistModelDownloadService.Table.Url, domestic, default))
+            Require(response.IsSuccessStatusCode, "ModelScope LFS redirect failed.");
 
         var untrusted = new Handler((_, _) => new(HttpStatusCode.Redirect) { Headers = { Location = new Uri("https://example.com/file") } });
         using (var client = new HttpClient(untrusted))
