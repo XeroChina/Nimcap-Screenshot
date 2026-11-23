@@ -37,7 +37,7 @@ For a computer without internet access, prepare the application, models, and run
 
 ## Software tour
 
-NimCap Screenshot runs in the notification area. Use shortcuts or its tray menu to capture, annotate, blur sensitive text, copy, save, pin, or recognize an image. To process an existing image, copy it, press `Ctrl+Shift+V` to create a pin, then right-click the pin and choose **Image Tools**.
+NimCap Screenshot runs in the notification area. Use shortcuts or its tray menu to capture, annotate, blur sensitive text, copy, save, pin, or recognize an image. To process an existing image, choose **Open image...** in the tray menu, or drop the file onto the `NimCap.Screenshot.exe` launcher (the command `NimCap.Screenshot.exe picture.png` also works), then use **Image Tools** to cut out, remove watermarks, or recognize. You can also copy the image, press `Ctrl+Shift+V` to create a pin, then right-click the pin and choose **Image Tools**.
 
 The illustrations below reuse repository assets. Some show the former branding or rendered WPF components, so button layouts may differ from the current version. Follow the entry points described here and in the current application. See [image provenance](Screenshot/Blog/README.md) for how the illustrations were made.
 
@@ -159,7 +159,7 @@ Save PNG, JPEG, WebP, TIFF, BMP, or A4-paginated PDF. Preview resizing and encod
 1. Download the Windows x64 package from [GitHub Releases](https://github.com/XeroChina/nimcap-screenshot/releases), extract the entire directory, and run `NimCap.Screenshot.exe`.
 2. Find its icon in the notification area. There is no persistent main window on startup.
 3. Press `Ctrl+Shift+A`, select a region, annotate, then copy, save, or pin. Press `Esc` to cancel.
-4. For an existing image, copy it, press `Ctrl+Shift+V`, then right-click the pin and choose **Image Tools**.
+4. For an existing image, choose **Open image...** in the tray menu, or drop the file onto the `NimCap.Screenshot.exe` launcher, then pick recognition, cutout, or watermark removal in **Image Tools**. You can also copy it, press `Ctrl+Shift+V`, then right-click the pin and choose **Image Tools**.
 5. Configure only the models and runtimes required for your AI features. Once prepared, the corresponding local features can run offline.
 
 | Default shortcut | Action |

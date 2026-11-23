@@ -24,7 +24,8 @@ internal static class Program
             UseShellExecute = false,
             WorkingDirectory = programDirectory,
         };
-        foreach (var argument in args) start.ArgumentList.Add(argument);
+        foreach (var argument in args)
+            start.ArgumentList.Add(File.Exists(argument) ? Path.GetFullPath(argument) : argument);
         try
         {
             using var process = Process.Start(start);

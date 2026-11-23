@@ -95,7 +95,7 @@ public partial class SettingsWindow
                 Require(AppActionCatalog.All.All(x => !AppActionCatalog.Visible(candidate, x)), "Visibility checkboxes were not stored.");
                 Require(snapshot == System.Text.Json.JsonSerializer.Serialize(settings.Current), "Editing staged shortcuts changed persisted settings.");
                 using var tray = new TrayService(); tray.UpdateHotkeyLabels(candidate);
-                Require(tray.Menu.Items.OfType<MenuItem>().Count(x => x.Visibility == Visibility.Visible) == 2, "Settings and Exit must be the only fixed items.");
+                Require(tray.Menu.Items.OfType<MenuItem>().Count(x => x.Visibility == Visibility.Visible) == 3, "Open image, Settings and Exit must be the only fixed items.");
                 foreach (var definition in AppActionCatalog.All) candidate.TrayActions[definition.Action.ToString()] = definition.DefaultVisible;
                 tray.UpdateHotkeyLabels(candidate);
                 tray.Menu.Measure(new System.Windows.Size(460, 900)); tray.Menu.Arrange(new Rect(tray.Menu.DesiredSize)); tray.Menu.UpdateLayout();

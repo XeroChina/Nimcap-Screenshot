@@ -17,10 +17,11 @@ public sealed class TrayService : IDisposable
     private readonly Queue<(string Title, string Message, NotificationIcon Icon)> _pendingNotifications = new();
     private readonly Dictionary<GlobalAction, MenuItem> _actions = new();
     private readonly Dictionary<string, MenuItem> _groups = new();
-    private readonly MenuItem _settingsItem, _exitItem;
+    private readonly MenuItem _settingsItem, _exitItem, _openImageItem;
     public event Action<GlobalAction>? ActionRequested;
     public event EventHandler? SettingsRequested;
     public event EventHandler? ExitRequested;
+    public event EventHandler? OpenImageRequested;
 
     public TrayService()
     {
@@ -42,6 +43,9 @@ public sealed class TrayService : IDisposable
             parent.Items.Add(item); _actions.Add(definition.Action, item);
         }
         _actions[GlobalAction.CancelDelay].IsEnabled = false;
+        _openImageItem = LocalizedMenu("OpenImage");
+        _openImageItem.Click += (_, _) => OpenImageRequested?.Invoke(this, EventArgs.Empty);
+        menu.Items.Add(_openImageItem);
         menu.Items.Add(new Separator());
         _settingsItem = LocalizedMenu("Settings"); _settingsItem.Click += (_, _) => SettingsRequested?.Invoke(this, EventArgs.Empty);
         menu.Items.Add(_settingsItem);
@@ -113,7 +117,8 @@ public sealed class TrayService : IDisposable
         settings.TrayActions["Settings"] = settings.TrayActions["Exit"] = false;
         tray.UpdateHotkeyLabels(settings);
         if (tray._actions.Values.Any(x => x.Visibility != Visibility.Collapsed) || tray._groups.Values.Any(x => x.Visibility != Visibility.Collapsed)
-            || tray._settingsItem.Visibility != Visibility.Visible || tray._exitItem.Visibility != Visibility.Visible) return false;
+            || tray._settingsItem.Visibility != Visibility.Visible || tray._exitItem.Visibility != Visibility.Visible
+            || tray._openImageItem.Visibility != Visibility.Visible) return false;
         foreach (var definition in AppActionCatalog.All) settings.TrayActions[definition.Action.ToString()] = true;
         tray.UpdateHotkeyLabels(settings); actions.Clear();
         foreach (var item in tray._actions.Values) RaiseClick(item);
@@ -128,7 +133,8 @@ public sealed class TrayService : IDisposable
             LocalizationService.Apply(language);
             Application.Current.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             if (AppActionCatalog.All.Where(x => x.ShowInTray).Any(x => !Equals(tray._actions[x.Action].Header, x.Label))
-                || !Equals(tray._settingsItem.Header, L.Get("Settings")) || !Equals(tray._exitItem.Header, L.Get("Exit"))) return false;
+                || !Equals(tray._settingsItem.Header, L.Get("Settings")) || !Equals(tray._exitItem.Header, L.Get("Exit"))
+                || !Equals(tray._openImageItem.Header, L.Get("OpenImage"))) return false;
         }
         return true;
     }

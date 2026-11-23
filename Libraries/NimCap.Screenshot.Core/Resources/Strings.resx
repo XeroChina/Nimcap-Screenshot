@@ -2950,6 +2950,21 @@ Adjust this offset in 1-pixel steps. Blue guides are not written to output.</val
   <data name="ONNXModelOnnx" xml:space="preserve">
     <value>ONNX model|*.onnx</value>
   </data>
+  <data name="OpenImage" xml:space="preserve">
+    <value>Open image...</value>
+  </data>
+  <data name="ImageFilesFilter" xml:space="preserve">
+    <value>Image files|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.webp;*.tif;*.tiff;*.ico|All files|*.*</value>
+  </data>
+  <data name="UnrecognizedImageFormatOrFileIs" xml:space="preserve">
+    <value>Unrecognized image format or the file is corrupted: {0}</value>
+  </data>
+  <data name="ImageLoaded" xml:space="preserve">
+    <value>Loaded image: {0}×{1}</value>
+  </data>
+  <data name="ImageDropInvalid" xml:space="preserve">
+    <value>Drop an image file to open it.</value>
+  </data>
   <data name="ChooseLaTeXOCRModelFolder" xml:space="preserve">
     <value>Choose LaTeX-OCR model folder</value>
   </data>

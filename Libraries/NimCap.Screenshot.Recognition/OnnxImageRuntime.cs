@@ -214,9 +214,11 @@ public sealed partial class OnnxImageRuntime : IDisposable
     private sealed class GpuInitializationException(Exception inner) : Exception("GPU initialization failed.", inner);
     private sealed class GpuBudgetException : Exception;
 
+    public const long MaximumPixels = 16_000_000;
+
     public static void ValidateImage(BitmapSource image)
     {
-        if (image.PixelWidth < 1 || image.PixelHeight < 1 || (long)image.PixelWidth * image.PixelHeight > 16_000_000)
+        if (image.PixelWidth < 1 || image.PixelHeight < 1 || (long)image.PixelWidth * image.PixelHeight > MaximumPixels)
             throw new ArgumentException(L.Get("RecognitionBackgroundRemovalInputIsLimitedTo"));
     }
     public void Dispose()

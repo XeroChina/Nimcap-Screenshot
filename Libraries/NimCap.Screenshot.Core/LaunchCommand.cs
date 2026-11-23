@@ -3,13 +3,14 @@ using NimCap.Screenshot.Models;
 
 namespace NimCap.Screenshot.Services;
 
-public sealed record LaunchCommand(CaptureMode? Mode, int DelaySeconds, bool CopyToClipboard)
+public sealed record LaunchCommand(CaptureMode? Mode, int DelaySeconds, bool CopyToClipboard, IReadOnlyList<string>? ImagePaths = null)
 {
     public static bool TryParse(IReadOnlyList<string> args, out LaunchCommand command, out string error)
     {
         CaptureMode? mode = null;
         var delay = 0;
         var copy = false;
+        var images = new List<string>();
         error = string.Empty;
 
         for (var i = 0; i < args.Count; i++)
@@ -38,12 +39,14 @@ public sealed record LaunchCommand(CaptureMode? Mode, int DelaySeconds, bool Cop
                     copy = true;
                     break;
                 default:
+                    // A bare existing file path opens that image in the image tools.
+                    if (File.Exists(args[i])) { images.Add(Path.GetFullPath(args[i])); break; }
                     return Fail(out command, out error, L.Format("UnknownCommandLineArgument0", args[i]));
             }
         }
 
         if (delay > 0 && mode is null) mode = CaptureMode.Region;
-        command = new LaunchCommand(mode, delay, copy);
+        command = new LaunchCommand(mode, delay, copy, images.Count > 0 ? images : null);
         return true;
 
         bool SetMode(CaptureMode value)

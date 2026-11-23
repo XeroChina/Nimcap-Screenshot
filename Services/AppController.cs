@@ -73,6 +73,7 @@ public sealed class AppController : IDisposable
         _screenWords.Failed += error => { _tray.SetScreenWordsChecked(false); _tray.ShowMessage(L.Get("ScreenTextCaptureStopped"), error, System.Windows.Forms.ToolTipIcon.Warning); };
         _hotkey.ScreenRulerRequested += (_, _) => ShowScreenRuler();
         _tray.SettingsRequested += (_, _) => ShowSettings();
+        _tray.OpenImageRequested += (_, _) => OpenImageFilePicker();
         _hotkey.PinActionRequested += ExecuteAction;
         _tray.ExitRequested += async (_, _) => { if (_recordingWindow is null || await _recordingWindow.StopAndWait()) Application.Current.Shutdown(); };
         _hotkey.CaptureRequested += RequestCapture;
@@ -259,11 +260,38 @@ public sealed class AppController : IDisposable
             return;
         }
 
+        if (command.ImagePaths is { Count: > 0 })
+        {
+            OpenImageFiles(command.ImagePaths);
+            return;
+        }
         var mode = command.Mode;
         if (mode is null && fromSecondaryInstance) mode = CaptureMode.Region;
         if (mode is null) return;
         if (command.DelaySeconds > 0) ScheduleDelayedCapture(mode.Value, command.DelaySeconds);
         else RequestCapture(mode.Value);
+    }
+
+    private void OpenImageFilePicker()
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = L.Get("OpenImage"),
+            Filter = ImageFileService.Filter,
+            Multiselect = true
+        };
+        if (WindowDialogService.ShowDialog(dialog) != true) return;
+        OpenImageFiles(dialog.FileNames);
+    }
+
+    private void OpenImageFiles(IReadOnlyList<string> paths)
+    {
+        if (_disposed) return;
+        foreach (var path in paths)
+        {
+            try { OpenRecognitionCore(ImageFileService.Load(path), null, "OCR", false); }
+            catch (Exception ex) { _tray.ShowMessage(L.Get("OpenImage"), ex.GetBaseException().Message); }
+        }
     }
 
     private void CancelDelayedScreenshot(object? sender, EventArgs e) => CancelDelayedScreenshot(showMessage: true);

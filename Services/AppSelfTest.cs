@@ -194,6 +194,7 @@ internal static class AppSelfTest
                 ["editing"] = Check("editing", () => RunEditingSelfTest(source, testDirectory)),
                 ["plugins"] = Check("plugins", () => RunPluginSelfTest(source, testDirectory)),
                 ["launch-trigger"] = Check("launch-trigger", () => RunTriggerSelfTest()),
+                ["image-file"] = Check("image-file", () => RunImageFileSelfTest(testDirectory)),
                 ["theme"] = Check("theme", () => RunThemeSelfTest())
             };
             var failed = checks.Where(item => !item.Value).Select(item => item.Key).ToArray();
@@ -594,7 +595,37 @@ internal static class AppSelfTest
         if (HotkeyGesture.TryParse("A", out _, out _)) return false;
         if (!LaunchCommand.TryParse(["-full", "-delay", "3", "-clip"], out var command, out _) ||
             command.Mode != CaptureMode.FullScreen || command.DelaySeconds != 3 || !command.CopyToClipboard) return false;
-        return !LaunchCommand.TryParse(["-full", "-window"], out _, out _);
+        if (LaunchCommand.TryParse(["-full", "-window"], out _, out _)) return false;
+        var imagePath = Path.Combine(Path.GetTempPath(), "nimcap-launch-" + Guid.NewGuid().ToString("N") + ".png");
+        File.WriteAllText(imagePath, "fixture");
+        try
+        {
+            if (!LaunchCommand.TryParse([imagePath], out var imageCommand, out _) ||
+                imageCommand.ImagePaths is not { Count: 1 } paths || paths[0] != Path.GetFullPath(imagePath)) return false;
+            if (LaunchCommand.TryParse([imagePath + ".missing"], out _, out _)) return false;
+        }
+        finally { File.Delete(imagePath); }
+        return true;
+    }
+
+    private static bool RunImageFileSelfTest(string directory)
+    {
+        if (ImageFileService.ScaleFactor(4000, 4000) != 1) return false;
+        var scale = ImageFileService.ScaleFactor(8000, 8000);
+        if (scale >= 1 || (long)(8000 * scale) * (long)(8000 * scale) > OnnxImageRuntime.MaximumPixels) return false;
+        var path = Path.Combine(directory, "image-file.png");
+        var pixels = Enumerable.Repeat((byte)210, 96 * 64 * 4).ToArray();
+        var image = BitmapSource.Create(96, 64, 96, 96, PixelFormats.Bgra32, null, pixels, 96 * 4);
+        image.Freeze();
+        var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(image));
+        using (var stream = File.Create(path)) encoder.Save(stream);
+        var loaded = ImageFileService.Load(path);
+        if (loaded.PixelWidth != 96 || loaded.PixelHeight != 64) return false;
+        var invalid = Path.Combine(directory, "invalid.png");
+        File.WriteAllText(invalid, "not an image");
+        try { ImageFileService.Load(invalid); return false; }
+        catch (Exception ex) when (ex is InvalidDataException or NotSupportedException) { }
+        return true;
     }
 
     private static int RunCaptureSelfTest()

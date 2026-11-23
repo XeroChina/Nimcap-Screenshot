@@ -104,6 +104,36 @@ public partial class RecognitionWindow : Window
             if (autoRun && Mode is "OCR" or "Summary") await Run();
         };
         Closed += (_, _) => { _closed = true; _operation?.Cancel(); };
+        AllowDrop = true;
+        Drop += (_, e) =>
+        {
+            if (_busy || !e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop)) return;
+            var path = (e.Data.GetData(System.Windows.DataFormats.FileDrop) as string[])?.FirstOrDefault(File.Exists);
+            if (path is null) { Status.Text = L.Get("ImageDropInvalid"); return; }
+            try
+            {
+                CellsGrid.CommitEdit();
+                if (HasEdits && MessageBox.Show(this, L.Get("RecognitionTransformConfirm"), L.Get("Confirm"),
+                    MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+                var image = ImageFileService.Load(path);
+                ReplaceImage(image, L.Format("ImageLoaded", image.PixelWidth, image.PixelHeight));
+            }
+            catch (Exception ex) { Status.Text = ex.GetBaseException().Message; }
+        };
+    }
+
+    private void ReplaceImage(BitmapSource image, string status)
+    {
+        _image = image.IsFrozen ? image : image.Clone();
+        if (!_image.IsFrozen) _image.Freeze();
+        _document = null; _identityDocument = null; DocumentEditor.Clear(); _identityBaseline = IdentitySnapshot;
+        DocumentTypeText.Text = DocumentTypeName(_documentKindOverride ?? IdentityDocumentKind.Unknown);
+        SetSourceText(""); _baseline = _sourceText; _cells.Clear(); _tableBaseline = TableSnapshot;
+        _cutout = null; _cutoutUndo.Clear();
+        ResetWatermarkImage();
+        SetPicture(_image); PictureScroll.UpdateLayout(); FitImage();
+        RefreshComparison();
+        Status.Text = status;
     }
     private void SetPicture(BitmapSource image)
     {
@@ -123,16 +153,7 @@ public partial class RecognitionWindow : Window
             "Left" => new RotateTransform(-90), "Right" => new RotateTransform(90),
             "Half" => new RotateTransform(180), "Vertical" => new ScaleTransform(1, -1), _ => Transform.Identity
         };
-        _image = new TransformedBitmap(_image, transform);
-        if (!_image.IsFrozen) _image.Freeze();
-        _document = null; _identityDocument = null; DocumentEditor.Clear(); _identityBaseline = IdentitySnapshot;
-        DocumentTypeText.Text = DocumentTypeName(_documentKindOverride ?? IdentityDocumentKind.Unknown);
-        SetSourceText(""); _baseline = _sourceText; _cells.Clear(); _tableBaseline = TableSnapshot;
-        _cutout = null; _cutoutUndo.Clear();
-        ResetWatermarkImage();
-        SetPicture(_image); PictureScroll.UpdateLayout(); FitImage();
-        RefreshComparison();
-        Status.Text = L.Get("RecognitionImageTransformed");
+        ReplaceImage(new TransformedBitmap(_image, transform), L.Get("RecognitionImageTransformed"));
     }
     private async void Run_Click(object sender, RoutedEventArgs e) => await Run();
     private async Task Run()
