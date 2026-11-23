@@ -8,11 +8,26 @@ param(
 # so callers can fall back to the self-contained managed launcher.
 $ErrorActionPreference = 'Stop'
 try {
-    $candidates = @(
-        Get-ChildItem -Path 'C:\Program Files\Microsoft Visual Studio\2022\*\VC\Auxiliary\Build\vcvars64.bat' -ErrorAction SilentlyContinue
-        Get-ChildItem -Path 'C:\Program Files (x86)\Microsoft Visual Studio\2022\*\VC\Auxiliary\Build\vcvars64.bat' -ErrorAction SilentlyContinue
-    )
-    $vcvars = $candidates | Select-Object -First 1 -ExpandProperty FullName
+    $vcvars = $null
+    $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
+    if (Test-Path -LiteralPath $vswhere) {
+        $installPath = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>$null
+        if ($installPath) {
+            $candidate = Join-Path $installPath 'VC\Auxiliary\Build\vcvars64.bat'
+            if (Test-Path -LiteralPath $candidate) { $vcvars = $candidate }
+        }
+    }
+    if (-not $vcvars) {
+        $found = foreach ($root in @('C:\Program Files\Microsoft Visual Studio', 'C:\Program Files (x86)\Microsoft Visual Studio', 'C:\BuildTools')) {
+            if (Test-Path -LiteralPath $root) {
+                Get-ChildItem -Path (Join-Path $root '*\*\VC\Auxiliary\Build\vcvars64.bat') -ErrorAction SilentlyContinue
+                Get-ChildItem -Path (Join-Path $root '*\VC\Auxiliary\Build\vcvars64.bat') -ErrorAction SilentlyContinue
+            }
+        }
+        $vcvars = $found | Select-Object -First 1 -ExpandProperty FullName
+    }
+    if ($vcvars) { Write-Host "Native launcher: vcvars64 = $vcvars" }
+    else { Write-Host 'Native launcher: vcvars64 not found, using managed fallback.' }
     if (-not $vcvars) { exit 1 }
 
     $outputDirectory = Split-Path -Parent $Output
@@ -27,7 +42,8 @@ try {
     cmd /c "`"$batch`""
     $exitCode = $LASTEXITCODE
     Remove-Item -LiteralPath $batch -Force -ErrorAction SilentlyContinue
+    Write-Host "Native launcher: cl exit code $exitCode; output exists = $(Test-Path -LiteralPath $Output)"
     if ($exitCode -ne 0 -or -not (Test-Path -LiteralPath $Output)) { exit 1 }
     exit 0
 }
-catch { exit 1 }
+catch { Write-Host "Native launcher: $($_.Exception.Message)"; exit 1 }

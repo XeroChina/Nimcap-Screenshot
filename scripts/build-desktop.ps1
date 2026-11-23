@@ -49,7 +49,7 @@ try {
     # Prefer the tiny native launcher; fall back to the self-contained managed launcher without MSVC.
     New-Item -ItemType Directory -Path $stagePackage -Force | Out-Null
     $nativeLauncher = Join-Path $buildRoot 'launcher-native\NimCap.Screenshot.exe'
-    & (Join-Path $PSScriptRoot 'Build-Launcher.ps1') -Source (Join-Path $repositoryRoot 'tools/Launcher/launcher.cpp') -Output $nativeLauncher | Out-Null
+    & (Join-Path $PSScriptRoot 'Build-Launcher.ps1') -Source (Join-Path $repositoryRoot 'tools/Launcher/launcher.cpp') -Output $nativeLauncher
     if ($LASTEXITCODE -eq 0) {
         Copy-Item -LiteralPath $nativeLauncher -Destination (Join-Path $stagePackage 'NimCap.Screenshot.exe')
     }
