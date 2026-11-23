@@ -37,7 +37,7 @@ try {
     @(
         '@echo off'
         ('call "{0}" >nul 2>&1' -f $vcvars)
-        ('cl /nologo /O2 /EHsc /MT /W3 /Fe"{0}" /Fo"{1}" "{2}" /link /SUBSYSTEM:WINDOWS' -f $Output, $objectOutput, $Source)
+        ('cl /nologo /std:c++17 /O2 /EHsc /MT /W3 /Fe"{0}" /Fo"{1}" "{2}" /link /SUBSYSTEM:WINDOWS' -f $Output, $objectOutput, $Source)
     ) | Set-Content -LiteralPath $batch -Encoding ASCII
     cmd /c "`"$batch`""
     $exitCode = $LASTEXITCODE

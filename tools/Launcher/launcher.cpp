@@ -40,7 +40,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     STARTUPINFOW startup = {};
     startup.cb = sizeof(startup);
     PROCESS_INFORMATION process = {};
-    if (!CreateProcessW(program.c_str(), command.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startup, &process))
+    if (!CreateProcessW(program.c_str(), &command[0], nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startup, &process))
     {
         MessageBoxW(nullptr, L"Could not start Program\\NimCap.Screenshot.exe", L"NimCap Screenshot", MB_OK | MB_ICONERROR);
         return 1;
