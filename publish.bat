@@ -34,14 +34,20 @@ if errorlevel 1 (
     echo ERROR: Publish failed. Review the output above.
     goto cleanup
 )
-dotnet publish "%~dp0tools\Launcher\Launcher.csproj" -c Release -r win-x64 -o "%LAUNCHER_STAGE%" -m:1 -p:UseSharedCompilation=false
+if not exist "%LAUNCHER_STAGE%" mkdir "%LAUNCHER_STAGE%"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\Build-Launcher.ps1" -Source "%~dp0tools\Launcher\launcher.cpp" -Output "%LAUNCHER_STAGE%\native\NimCap.Screenshot.exe"
 if errorlevel 1 (
-    echo.
-    echo ERROR: Launcher publish failed. Review the output above.
-    rd /s /q "%LAUNCHER_STAGE%" 2>nul
-    goto cleanup
+    dotnet publish "%~dp0tools\Launcher\Launcher.csproj" -c Release -r win-x64 -o "%LAUNCHER_STAGE%\managed" -m:1 -p:UseSharedCompilation=false
+    if errorlevel 1 (
+        echo.
+        echo ERROR: Launcher publish failed. Review the output above.
+        rd /s /q "%LAUNCHER_STAGE%" 2>nul
+        goto cleanup
+    )
+    copy /y "%LAUNCHER_STAGE%\managed\NimCap.Screenshot.exe" "%PUBLISH_OUTPUT%\NimCap.Screenshot.exe" >nul
+) else (
+    copy /y "%LAUNCHER_STAGE%\native\NimCap.Screenshot.exe" "%PUBLISH_OUTPUT%\NimCap.Screenshot.exe" >nul
 )
-copy /y "%LAUNCHER_STAGE%\NimCap.Screenshot.exe" "%PUBLISH_OUTPUT%\NimCap.Screenshot.exe" >nul
 if errorlevel 1 goto launcher_copy_failed
 rd /s /q "%LAUNCHER_STAGE%" 2>nul
 

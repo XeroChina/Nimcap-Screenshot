@@ -46,15 +46,23 @@ try {
         '--self-contained', 'true', '-o', $publishDirectory, '-m:1',
         '-p:UseSharedCompilation=false', '-p:PublishSingleFile=false', '-p:PublishTrimmed=false',
         "-bl:$buildRoot/publish.binlog")
-    Invoke-DotNet @('publish', 'tools/Launcher/Launcher.csproj', '-c', 'Release', '-r', 'win-x64',
-        '-o', $launcherDirectory, '-m:1', '-p:UseSharedCompilation=false',
-        "-bl:$buildRoot/launcher.binlog")
+    # Prefer the tiny native launcher; fall back to the self-contained managed launcher without MSVC.
+    New-Item -ItemType Directory -Path $stagePackage -Force | Out-Null
+    $nativeLauncher = Join-Path $buildRoot 'launcher-native\NimCap.Screenshot.exe'
+    & (Join-Path $PSScriptRoot 'Build-Launcher.ps1') -Source (Join-Path $repositoryRoot 'tools/Launcher/launcher.cpp') -Output $nativeLauncher | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        Copy-Item -LiteralPath $nativeLauncher -Destination (Join-Path $stagePackage 'NimCap.Screenshot.exe')
+    }
+    else {
+        Invoke-DotNet @('publish', 'tools/Launcher/Launcher.csproj', '-c', 'Release', '-r', 'win-x64',
+            '-o', $launcherDirectory, '-m:1', '-p:UseSharedCompilation=false',
+            "-bl:$buildRoot/launcher.binlog")
+        Copy-Item -LiteralPath (Join-Path $launcherDirectory 'NimCap.Screenshot.exe') -Destination (Join-Path $stagePackage 'NimCap.Screenshot.exe')
+    }
 
     # Assemble the portable layout: launcher + portable marker at the root, runtime under Program/, user data under Data/.
-    New-Item -ItemType Directory -Path $stagePackage -Force | Out-Null
     Move-Item -LiteralPath $publishDirectory -Destination (Join-Path $stagePackage 'Program')
     $programDirectory = Join-Path $stagePackage 'Program'
-    Copy-Item -LiteralPath (Join-Path $launcherDirectory 'NimCap.Screenshot.exe') -Destination (Join-Path $stagePackage 'NimCap.Screenshot.exe')
     New-Item -ItemType File -Path (Join-Path $stagePackage 'portable') -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $stagePackage 'Data') -Force | Out-Null
     New-Item -ItemType File -Path (Join-Path $stagePackage 'Data\.gitkeep') -Force | Out-Null
